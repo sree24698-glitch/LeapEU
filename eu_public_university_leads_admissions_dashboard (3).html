@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EU Public University Leads &amp; Admissions Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f3f5f8;--surface:#ffffff;--ink:#13243a;--muted:#5d6b7d;--line:#dde3ec;
+  --a:#0b5fff;--b:#00a389;--c:#f2a900;--d:#d6456b;--e:#7a5af8;--f:#2b9ed8;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1623;--surface:#16213a;--ink:#e8eef8;--muted:#9aa9bf;--line:#26344f;
+    --a:#5b94ff;--b:#2ccfb0;--c:#ffc233;--d:#ff7a9c;--e:#a08bff;--f:#5cc0f0
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1623;--surface:#16213a;--ink:#e8eef8;--muted:#9aa9bf;--line:#26344f;
+  --a:#5b94ff;--b:#2ccfb0;--c:#ffc233;--d:#ff7a9c;--e:#a08bff;--f:#5cc0f0
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Inter","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 16px 40px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;align-items:flex-end;margin-bottom:16px}
+.brand{display:inline-block;margin-bottom:8px;background:transparent;border:0;padding:0}
+.lc .brand{display:flex;justify-content:center;margin:0 auto 8px}
+.logo{height:42px;width:auto;display:block;mix-blend-mode:multiply}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]) .brand{background:#fff;padding:4px 8px;border-radius:6px}
+  :root:not([data-theme="light"]) .logo{mix-blend-mode:normal}
+}
+:root[data-theme="dark"] .brand{background:#fff;padding:4px 8px;border-radius:6px}
+:root[data-theme="dark"] .logo{mix-blend-mode:normal}
+h1{font-size:24px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px;margin:2px 0 0}
+.hactions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px}
+label{display:flex;flex-direction:column;font-size:12px;color:var(--muted);gap:4px}
+select,input{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;min-width:0}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--a);outline-offset:1px}
+button{font:inherit;cursor:pointer;border:1px solid var(--a);background:var(--a);color:#fff;border-radius:6px;padding:8px 14px;align-self:end}
+button.ghost{background:transparent;color:var(--a)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;border-left:4px solid var(--a)}
+.kpi:nth-child(2){border-left-color:var(--b)}.kpi:nth-child(3){border-left-color:var(--c)}.kpi:nth-child(4){border-left-color:var(--d)}.kpi:nth-child(5){border-left-color:var(--e)}.kpi:nth-child(6){border-left-color:var(--f)}
+.kpi b{display:block;font-size:26px;letter-spacing:-.02em}.kpi span{font-size:12px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;margin-bottom:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.card h2{font-size:14px;margin:0 0 10px}
+.ch{position:relative;height:260px}
+.ch.tall{height:340px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:1020px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:12px;position:sticky;top:0;background:var(--surface)}
+.tag{display:inline-block;padding:1px 8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);font-size:12px}
+.tag.op{border-color:var(--c)}.tag.ad{border-color:var(--b)}.tag.rj{border-color:var(--d);color:var(--d)}
+.yes{color:var(--b);font-weight:600}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted);font-size:12px;gap:10px;flex-wrap:wrap}
+.pager{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pager select{padding:4px 8px;font-size:12px}
+.pager button{padding:5px 10px;font-size:12px;align-self:auto}
+.pager button:disabled{opacity:.4;cursor:not-allowed}
+.pg-info{font-weight:600;color:var(--ink);padding:0 4px}
+.idb{background:none;border:0;padding:0;color:var(--a);text-decoration:underline;font-size:13px;cursor:pointer}
+.ov{position:fixed;inset:0;background:rgba(10,20,35,.6);display:flex;justify-content:center;align-items:flex-start;overflow:auto;padding:max(16px,env(safe-area-inset-top,0px)) 12px 24px;z-index:50}
+.ov[hidden]{display:none}
+.pf{background:var(--surface);border:1px solid var(--line);border-radius:12px;max-width:820px;width:100%;padding:20px;position:relative;margin:auto}
+.x{position:absolute;top:14px;right:14px;padding:5px 12px}
+.pf h2{font-size:20px;margin:0 0 4px;padding-right:80px}
+.pg{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:14px}
+.pf h3{font-size:13px;margin:0 0 6px}
+dl{margin:0}dl div{display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
+dt{color:var(--muted)}dd{margin:0;text-align:right}
+.st{list-style:none;margin:0;padding:0;font-size:13px}.st li{padding:4px 0 4px 22px;position:relative;color:var(--muted)}
+.st li:before{content:"○";position:absolute;left:0}.st li.done{color:var(--ink)}.st li.done:before{content:"✓";color:var(--b)}
+.st li.cur{color:var(--ink);font-weight:700}.st li.cur:before{content:"●";color:var(--c)}
+.nx{margin:12px 0 0;padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--c);border-radius:8px;font-size:13px}
+.rj-box{margin:10px 0 0;padding:10px 12px;border:1px solid var(--line);border-left:4px solid var(--d);border-radius:8px;font-size:13px;background:rgba(214,69,107,.06)}
+.reveal-wrap{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end}
+.masked-val{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:12.5px;letter-spacing:.01em}
+.reveal-btn{background:var(--bg);color:var(--a);border:1px solid var(--line);border-radius:5px;padding:2px 7px;font-size:11px;font-weight:600;cursor:pointer;line-height:1.3}
+.reveal-btn:hover{border-color:var(--a);background:var(--surface)}
+#login[hidden],#app[hidden]{display:none}
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.lc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:26px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:12px;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+.lc h1{font-size:20px;margin:0}
+.err{color:var(--d);min-height:1.2em;font-size:13px;margin:0}
+.lc button{align-self:stretch}
+.hint-box{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--muted);line-height:1.5}
+.hint-box code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);font-weight:600}
+.user-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:12px;color:var(--muted)}
+.role-badge{padding:1px 6px;border-radius:99px;font-size:11px;font-weight:600;background:var(--a);color:#fff}
+.role-badge.team{background:var(--b)}
+.um-list{margin:12px 0 0;padding:0;list-style:none;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.um-list li{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px;gap:8px}
+.um-list li:last-child{border-bottom:0}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+.sort-ind{font-size:10px;opacity:.6;margin-left:3px}
+.copy-btn{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:2px 6px;font-size:11px;cursor:pointer;line-height:1.3}
+.copy-btn:hover{border-color:var(--a);color:var(--a)}
+.notes-box{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.notes-box textarea{width:100%;min-height:64px;font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px;resize:vertical}
+.doc-btn{background:none;border:0;padding:0;font:inherit;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted)}
+.doc-btn.ok{color:var(--b)}
+.stage-sel{font-size:12px;padding:3px 8px;border-radius:99px;margin-left:6px}
+.toast{position:fixed;bottom:18px;right:18px;z-index:80;background:var(--ink);color:var(--surface);padding:9px 14px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.toast[hidden]{display:none}
+</style>
+</head>
+<body>
+<div id="login">
+  <div class="lc">
+    <div class="brand" style="margin-bottom:4px"><img class="logo" id="lg" alt="LeapScholar"></div>
+    <h1>Sign in</h1>
+    <p class="sub">Sign in with your <b>@leapfinance.com</b> email ID to access the dashboard.</p>
+    <label>Work Email<input id="le" type="email" autocomplete="username" placeholder="you@leapfinance.com"></label>
+    <label>Password<input id="lp" type="password" autocomplete="current-password" placeholder="Enter password"></label>
+    <p id="lerr" class="err" role="alert"></p>
+    <button id="lb" type="button">Sign in</button>
+
+  </div>
+</div>
+<div class="wrap" id="app" hidden>
+  <header>
+    <div>
+      <div class="brand">
+        <img class="logo" src="data:image/png;base64,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" alt="LeapScholar">
+      </div>
+      <h1>EU public university leads</h1>
+      <p class="sub">12,500 leads across 8 EU countries. Intakes 2022 to 2027.</p>
+    </div>
+    <div class="hactions">
+      <span class="user-pill" id="userPill"></span>
+      <button id="addLeadBtn" type="button">+ Add Lead</button>
+      <button class="ghost" id="impBtn" type="button">Import CSV</button>
+      <input id="impFile" type="file" accept=".csv" hidden>
+      <button class="ghost" id="adminBtn" type="button" hidden>Manage Users</button>
+      <button class="ghost" id="themeBtn" type="button">Toggle theme</button>
+      <button class="ghost" id="expBtn" type="button">Export CSV</button>
+      <button class="ghost" id="outBtn" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <section class="filters" aria-label="Filters">
+    <label>Status<select id="fSt"></select></label>
+    <label>Stage<select id="fSg"></select></label>
+    <label>Country<select id="fC"></select></label>
+    <label>City<select id="fCi"></select></label>
+    <label>Course<select id="fCo"></select></label>
+    <label>Intake<select id="fI"></select></label>
+    <label>Year<select id="fY"></select></label>
+    <label>Scholarship<select id="fSc"></select></label>
+    <label>Package Enrolled<select id="fPk"></select></label>
+    <label id="fCoNWrap">Counsellor<select id="fCoN"></select></label>
+    <label id="fScNWrap">Service Counsellor<select id="fScN"></select></label>
+    <label>Search<input id="fS" type="search" placeholder="Name, university or ID"></label>
+    <button class="ghost" id="rst" type="button">Reset filters</button>
+  </section>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid">
+    <div class="card"><h2>Leads by stage</h2><div class="ch tall"><canvas id="c5"></canvas></div></div>
+    <div class="card"><h2>Leads by year and intake</h2><div class="ch"><canvas id="c1"></canvas></div></div>
+    <div class="card"><h2>Leads by country</h2><div class="ch"><canvas id="c2"></canvas></div></div>
+    <div class="card"><h2>Course mix</h2><div class="ch"><canvas id="c3"></canvas></div></div>
+    <div class="card"><h2>Top universities</h2><div class="ch"><canvas id="c4"></canvas></div></div>
+  </section>
+
+  <section class="card">
+    <h2>All leads</h2>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="id">ID<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="n">Candidate<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="st">Status<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="sg">Stage<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="c">Country<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="city">City<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="u">University<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="co">Course<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="y">Intake<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="cgpa">CGPA<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="ug">UG %<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="ie">IELTS<span class="sort-ind"></span></th>
+            <th class="sortable" data-sort="s">Scholarship<span class="sort-ind"></span></th>
+          </tr>
+        </thead>
+        <tbody id="tb"></tbody>
+      </table>
+    </div>
+    <div class="foot">
+      <span id="cnt"></span>
+      <div class="pager">
+        <label style="flex-direction:row;align-items:center;gap:6px">Rows<select id="pgSize"><option value="20" selected>20</option><option value="50">50</option><option value="100">100</option></select></label>
+        <button class="ghost" id="pgFirst" type="button">First</button>
+        <button class="ghost" id="pgPrev" type="button">Prev</button>
+        <span class="pg-info" id="pgInfo">Page 1 of 1</span>
+        <button class="ghost" id="pgNext" type="button">Next</button>
+        <button class="ghost" id="pgLast" type="button">Last</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="ov" id="pm" hidden>
+  <div class="pf" role="dialog" aria-modal="true" aria-labelledby="pt">
+    <button class="x ghost" id="px" type="button" aria-label="Close profile">Close</button>
+    <div id="pb"></div>
+  </div>
+</div>
+
+<div class="ov" id="alm" hidden>
+  <div class="pf" role="dialog" aria-modal="true" aria-labelledby="almTitle" style="max-width:560px">
+    <button class="x ghost" id="almx" type="button" aria-label="Close">Close</button>
+    <h2 id="almTitle">Add New Lead</h2>
+    <p class="sub">Add a candidate directly into the dashboard (saved in this browser).</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+      <label>Full Name<input id="alName" type="text" placeholder="e.g. Priya Nair"></label>
+      <label>City<select id="alCity"></select></label>
+      <label>Country<select id="alCountry"></select></label>
+      <label>University<input id="alUniv" type="text" placeholder="e.g. TU Munich"></label>
+      <label>Course<select id="alCourse"></select></label>
+      <label>Intake &amp; Year<div style="display:flex;gap:6px"><select id="alIntake" style="flex:1"><option>Winter</option><option>Summer</option></select><select id="alYear" style="flex:1"><option>2027</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option><option>2022</option></select></div></label>
+      <label>CGPA (out of 10)<input id="alCgpa" type="number" min="4.0" max="10.0" step="0.1" value="8.2"></label>
+      <label>UG %<input id="alUg" type="number" min="40" max="100" step="0.1" value="78.5"></label>
+      <label>IELTS<input id="alIelts" type="number" min="4" max="9" step="0.5" value="7.0"></label>
+      <label>Stage<select id="alStage"></select></label>
+      <label>Scholarship<select id="alSchol"><option value="no">No</option><option value="yes">Yes</option></select></label>
+    </div>
+    <p id="alErr" class="err" style="margin-top:8px"></p>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+      <button class="ghost" id="alCancel" type="button">Cancel</button>
+      <button id="alSave" type="button">Save Lead</button>
+    </div>
+  </div>
+</div>
+<div id="toast" class="toast" hidden></div>
+<div class="ov" id="um" hidden>
+  <div class="pf" role="dialog" aria-modal="true" aria-labelledby="umTitle" style="max-width:520px">
+    <button class="x ghost" id="umx" type="button" aria-label="Close">Close</button>
+    <h2 id="umTitle">Manage LeapFinance Users</h2>
+    <p class="sub">Add or remove authorized <b>@leapfinance.com</b> team members.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-top:14px;align-items:end">
+      <label>Email<input id="newUserEmail" type="email" placeholder="name@leapfinance.com"></label>
+      <label>Password<input id="newUserPass" type="text" value="Leap@123"></label>
+      <button id="addUserBtn" type="button">Add</button>
+    </div>
+    <p id="umErr" class="err" style="margin-top:6px"></p>
+    <ul class="um-list" id="umList"></ul>
+  </div>
+</div>
+
+<script>
+function rng(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const R=rng(2026),pick=a=>a[Math.floor(R()*a.length)];
+function wp(o){let s=Object.values(o).reduce((x,y)=>x+y,0)*R(),k;for(k in o){s-=o[k];if(s<=0)return k}return k}
+
+const CT={
+  Germany:{w:30,wi:.65,u:["TU Munich","RWTH Aachen","TU Berlin","University of Stuttgart","TU Dresden","University of Mannheim","KIT Karlsruhe"]},
+  Sweden:{w:11,wi:.92,u:["KTH Royal Institute","Lund University","Chalmers","Uppsala University","Stockholm University"]},
+  Italy:{w:15,wi:.8,u:["Politecnico di Milano","Politecnico di Torino","University of Bologna","Sapienza Rome","University of Padua"]},
+  France:{w:13,wi:.85,u:["Université Paris-Saclay","Sorbonne University","Grenoble Alpes","Université de Toulouse","Université de Lyon"]},
+  Netherlands:{w:12,wi:.75,u:["TU Delft","University of Amsterdam","TU Eindhoven","University of Groningen","University of Twente"]},
+  Poland:{w:8,wi:.7,u:["Warsaw University of Technology","AGH Krakow","Wroclaw University of Technology","Gdansk University of Technology"]},
+  Austria:{w:5,wi:.7,u:["TU Wien","University of Vienna","TU Graz"]},
+  Finland:{w:6,wi:.85,u:["Aalto University","University of Helsinki","Tampere University"]}
+};
+
+const CO={
+  "Computer Science":22,"Data Science & AI":16,"Mechanical Engineering":14,"Electrical & Electronics":11,
+  "Business & Management":12,"Civil & Environmental":7,"Biotechnology":7,"Renewable Energy":6,"Architecture":5
+};
+
+const FN=["Aarav","Ananya","Rohan","Priya","Karthik","Sneha","Vikram","Divya","Arjun","Meera","Rahul","Isha","Siddharth","Neha","Aditya","Kavya","Nikhil","Pooja","Harsh","Lakshmi","Varun","Ritika","Manoj","Swathi","Ishaan","Tanvi","Abhishek","Shruti"];
+const LN=["Sharma","Reddy","Iyer","Patel","Nair","Gupta","Rao","Menon","Singh","Kumar","Joshi","Kulkarni","Shetty","Bhat","Mehta","Das","Pillai","Verma","Naidu","Hegde"];
+const CITIES=["Bengaluru","Hyderabad","Chennai","Mumbai","Delhi NCR","Pune","Kochi","Ahmedabad","Kolkata","Jaipur"];
+const COUNSELLORS=["Sridhar","Nirubhan","Sheela","Dhru","Prem","Bharath","Hari","Shivani","Sai Naveen","Harish"];
+const SERVICE_COUNSELLORS=["Meenakshi","Karthik","Pooja","Vikram","Deepika","Rakesh"];
+const STORAGE_EDITS_KEY="lf_eu_lead_edits_v1";
+const STORAGE_CUSTOM_KEY="lf_eu_custom_leads_v1";
+function loadJson(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb}catch(e){return fb}}
+function saveJson(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+let leadEdits=loadJson(STORAGE_EDITS_KEY,{});
+let customLeads=loadJson(STORAGE_CUSTOM_KEY,[]);
+const YW={2022:14,2023:17,2024:20,2025:23,2026:26};
+const OPEN=["Profile evaluation","University shortlisting","Test prep in progress","Application in progress"];
+const POST=["Offer received","Scholarship assistance","Finance assistance","Visa documentation","Visa interview prep","Accommodation support","Pre-departure"];
+const REJ_STAGE="Application rejected";
+const STAGES=OPEN.concat(POST,["Enrolled",REJ_STAGE]);
+const OW={"Profile evaluation":28,"University shortlisting":26,"Test prep in progress":24,"Application in progress":22};
+const PW={"Offer received":10,"Scholarship assistance":14,"Finance assistance":14,"Visa documentation":18,"Visa interview prep":12,"Accommodation support":14,"Pre-departure":18};
+const CW=Object.fromEntries(Object.entries(CT).map(([k,v])=>[k,v.w]));
+const REJ_REASONS=[
+  "Low CGPA (below university 7.5/10 minimum cutoff for German/EU public track)",
+  "Insufficient ECTS credits in core Engineering / Mathematics prerequisites",
+  "IELTS overall 6.0 below required 6.5 band for English-taught Master's program",
+  "Missed Uni-Assist / university portal document verification deadline",
+  "Incomplete APS / VPD certificate verification before intake closing date",
+  "Lack of required 1+ year relevant work experience / portfolio for target track"
+];
+
+// Deterministic shuffled LS-XXXXXX IDs
+const TOTAL_POOL=12500;
+const ID_NUMS=Array.from({length:TOTAL_POOL},(_,k)=>104200+k*7);
+for(let k=ID_NUMS.length-1;k>0;k--){
+  const j=Math.floor(R()*(k+1));
+  const tmp=ID_NUMS[k];ID_NUMS[k]=ID_NUMS[j];ID_NUMS[j]=tmp;
+}
+
+const D=[];
+function mk1(i,kind){
+  const c=wp(CW),open=kind==="open",rej=kind==="rejected";
+  const y=kind==="past"?+wp(YW):rej?(R()<.78?+wp(YW):2027):2027;
+  const intake=R()<CT[c].wi?"Winter":"Summer";
+  const ug=rej?Math.round((54+R()*13)*10)/10:Math.round((62+R()*17+R()*13)*10)/10;
+  const cgpa=Math.min(9.9,Math.max(5.5,Math.round(((ug/9.5)+((R()-.5)*0.3))*10)/10));
+  const sg=rej?REJ_STAGE:kind==="past"?"Enrolled":open?wp(OW):wp(PW);
+  const st=rej?"Rejected":open?"Open":"Admitted";
+  const ie=(open&&sg!=="Application in progress")?null:rej?Math.min(6.5,5.5+Math.floor(R()*3)*.5):Math.min(8.5,6+Math.floor(R()*4)*.5+(R()<.3?.5:0));
+  const pkg=R()<.42?"Elite":"Premium";
+  const apps=(open&&sg!=="Application in progress")?0:(pkg==="Elite"?(7+Math.floor(R()*6)):(3+Math.floor(R()*4)));
+  const rr=rej?(cgpa<7.2?REJ_REASONS[0]:(ie!==null&&ie<=6.0?REJ_REASONS[2]:pick(REJ_REASONS))):null;
+  D.push({
+    id:"LS-"+ID_NUMS[i],
+    n:pick(FN)+" "+pick(LN),
+    c,city:pick(CITIES),
+    u:pick(CT[c].u),
+    co:wp(CO),
+    i:intake,y,ug,cgpa,ie,apps,st,sg,
+    s:(open||rej)?null:R()<(c==="Germany"?.22:.34),
+    cn:pick(COUNSELLORS),scn:pick(SERVICE_COUNSELLORS),
+    pkg,
+    rr
+  });
+}
+// 10,250 Admitted + 510 Rejected = 10,760 decided -> 95.26% success rate (93-97% band) + 1,740 Open = 12,500 total
+for(let i=0;i<9100;i++)mk1(i,"past");
+for(let i=9100;i<10250;i++)mk1(i,"next");
+for(let i=10250;i<10760;i++)mk1(i,"rejected");
+for(let i=10760;i<12500;i++)mk1(i,"open");
+customLeads.forEach(cl=>D.unshift(cl));
+D.forEach(x=>{const ed=leadEdits[x.id];if(ed){if(ed.sg){x.sg=ed.sg;x.st=OPEN.includes(ed.sg)?"Open":"Admitted"}}});
+D.sort((a,b)=>b.y-a.y||(a.i<b.i?1:-1));
+
+const $=id=>document.getElementById(id);
+function opts(el,list,all){el.innerHTML=`<option value="">${all}</option>`+list.map(x=>`<option>${x}</option>`).join("")}
+opts($("fC"),Object.keys(CT),"All countries");
+opts($("fCi"),CITIES,"All cities");
+opts($("fSc"),["Yes","No"],"All scholarships");
+opts($("fCoN"),COUNSELLORS,"All counsellors");
+opts($("fScN"),SERVICE_COUNSELLORS,"All service counsellors");
+$("alCity").innerHTML=CITIES.map(x=>`<option>${x}</option>`).join("");
+$("alCountry").innerHTML=Object.keys(CT).map(x=>`<option>${x}</option>`).join("");
+$("alCourse").innerHTML=Object.keys(CO).map(x=>`<option>${x}</option>`).join("");
+$("alStage").innerHTML=STAGES.map(x=>`<option>${x}</option>`).join("");
+opts($("fCo"),Object.keys(CO),"All courses");
+opts($("fI"),["Winter","Summer"],"All intakes");
+opts($("fY"),[2027,2026,2025,2024,2023,2022],"All years");
+$("fY").value="2027";
+function fillStages(){
+  const st=$("fSt").value,l=st==="Open"?OPEN:st==="Admitted"?POST.concat(["Enrolled"]):st==="Rejected"?[REJ_STAGE]:STAGES;
+  opts($("fSg"),l,"All stages");
+}
+opts($("fSt"),["Admitted","Open","Rejected"],"All leads");
+opts($("fPk"),["Elite","Premium"],"All packages");
+fillStages();
+
+const PAL=["--a","--b","--c","--d","--e","--f"];
+const cv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let charts={},page=1,pageSize=20,rows=[],sortKey="",sortDir="desc",activeCounsellorScope=null;
+function mk(id,cfg){
+  charts[id]&&charts[id].destroy();
+  Chart.defaults.color=cv("--muted");
+  Chart.defaults.borderColor=cv("--line");
+  cfg.options=Object.assign({responsive:true,maintainAspectRatio:false,animation:{duration:250}},cfg.options||{});
+  charts[id]=new Chart($(id),cfg);
+}
+function tally(k,r){const m={};r.forEach(x=>m[x[k]]=(m[x[k]]||0)+1);return Object.entries(m).sort((a,b)=>b[1]-a[1])}
+
+function render(){
+  const f={st:$("fSt").value,sg:$("fSg").value,c:$("fC").value,ci:$("fCi").value,co:$("fCo").value,i:$("fI").value,y:$("fY").value,sc:$("fSc").value,pk:$("fPk").value,cn:$("fCoN").value,q:$("fS").value.trim().toLowerCase()};
+  const scnVal=$("fScN").value;
+  rows=D.filter((x,idx)=>(!activeCounsellorScope||(activeCounsellorScope.type==="cn"?x.cn===activeCounsellorScope.val:((idx+activeCounsellorScope.bucket)%10===0)))&&(!f.st||x.st===f.st)&&(!f.sg||x.sg===f.sg)&&(!f.c||x.c===f.c)&&(!f.ci||x.city===f.ci)&&(!f.co||x.co===f.co)&&(!f.i||x.i===f.i)&&(!f.y||x.y==f.y)&&(!f.sc||(f.sc==="Yes"?x.s===true:x.s===false))&&(!f.pk||x.pkg===f.pk)&&(!f.cn||x.cn===f.cn)&&(!scnVal||x.scn===scnVal)&&(!f.q||(x.n+x.u+x.id+x.sg+x.city).toLowerCase().includes(f.q)));
+  if(sortKey){
+    const dir=sortDir==="asc"?1:-1;
+    rows.sort((a,b)=>{
+      const va=a[sortKey],vb=b[sortKey];
+      if(va==null&&vb==null)return 0;if(va==null)return 1;if(vb==null)return -1;
+      if(typeof va==="number"&&typeof vb==="number")return (va-vb)*dir;
+      if(typeof va==="boolean"&&typeof vb==="boolean")return ((va?1:0)-(vb?1:0))*dir;
+      return String(va).localeCompare(String(vb))*dir;
+    });
+  }
+  const n=rows.length,ad=rows.filter(x=>x.st==="Admitted"),rj=rows.filter(x=>x.st==="Rejected"),op=rows.filter(x=>x.st==="Open");
+  const decided=ad.length+rj.length;
+  const succ=decided?((ad.length/decided)*100).toFixed(1):"0.0";
+  const av=(a,k)=>{const v=a.filter(x=>x[k]!=null);return v.length?v.reduce((t,x)=>t+x[k],0)/v.length:0};
+  const sch=ad.length?Math.round(ad.filter(x=>x.s).length/ad.length*100):0;
+  const K=[
+    [n.toLocaleString("en-IN"),"Total leads"],
+    [ad.length.toLocaleString("en-IN"),`Admitted • ${rj.length.toLocaleString("en-IN")} Rejected`],
+    [op.length.toLocaleString("en-IN"),"Open leads"],
+    [av(rows,"cgpa").toFixed(2),"Average CGPA (out of 10)"],
+    [av(rows,"ie").toFixed(1),"Average IELTS"],
+    [sch+"%","Admitted with scholarship or fee waiver"]
+  ];
+  $("kpis").innerHTML=K.map(k=>`<div class="kpi"><b>${k[0]}</b><span>${k[1]}</span></div>`).join("");
+
+  const yrs=[2022,2023,2024,2025,2026,2027];
+  mk("c1",{type:"bar",data:{labels:yrs,datasets:["Winter","Summer"].map((s,j)=>({label:s,data:yrs.map(y=>rows.filter(x=>x.y===y&&x.i===s).length),backgroundColor:cv(PAL[j])}))},options:{scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}}}});
+  const bc=tally("c",rows);
+  mk("c2",{type:"bar",data:{labels:bc.map(x=>x[0]),datasets:[{label:"Leads",data:bc.map(x=>x[1]),backgroundColor:cv("--a")}]},options:{indexAxis:"y",plugins:{legend:{display:false}},onClick:(e,els)=>{if(els.length){const v=bc[els[0].index][0];$("fC").value=$("fC").value===v?"":v;render()}}}});
+  const bo=tally("co",rows);
+  mk("c3",{type:"doughnut",data:{labels:bo.map(x=>x[0]),datasets:[{data:bo.map(x=>x[1]),backgroundColor:bo.map((_,j)=>cv(PAL[j%6])),borderColor:cv("--surface")}]},options:{plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:11}}}},onClick:(e,els)=>{if(els.length){const v=bo[els[0].index][0];$("fCo").value=$("fCo").value===v?"":v;render()}}}});
+  const bu=tally("u",rows).slice(0,8);
+  mk("c4",{type:"bar",data:{labels:bu.map(x=>x[0]),datasets:[{label:"Leads",data:bu.map(x=>x[1]),backgroundColor:cv("--b")}]},options:{indexAxis:"y",plugins:{legend:{display:false}}}});
+  const sc=STAGES.map(g=>rows.filter(x=>x.sg===g).length);
+  mk("c5",{type:"bar",data:{labels:STAGES,datasets:[{label:"Open",data:STAGES.map((g,j)=>OPEN.includes(g)?sc[j]:null),backgroundColor:cv("--c")},{label:"Admitted",data:STAGES.map((g,j)=>(!OPEN.includes(g)&&g!==REJ_STAGE)?sc[j]:null),backgroundColor:cv("--b")},{label:"Rejected",data:STAGES.map((g,j)=>g===REJ_STAGE?sc[j]:null),backgroundColor:cv("--d")}]},options:{indexAxis:"y",scales:{x:{stacked:true},y:{stacked:true}},onClick:(e,els)=>{if(els.length){const v=STAGES[els[0].index];$("fSg").value=$("fSg").value===v?"":v;render()}}}});
+
+  page=1;table();
+}
+
+function table(){
+  const total=rows.length,totalPages=Math.max(1,Math.ceil(total/pageSize));
+  if(page>totalPages)page=totalPages;
+  const start=(page-1)*pageSize,end=Math.min(start+pageSize,total);
+  $("tb").innerHTML=rows.slice(start,end).map(x=>`<tr><td><button class="idb" type="button" data-id="${x.id}">${x.id}</button></td><td>${x.n}</td><td><span class="tag ${x.st==="Open"?"op":x.st==="Rejected"?"rj":"ad"}">${x.st}</span></td><td>${x.sg}</td><td>${x.c}</td><td>${x.city}</td><td>${x.u}</td><td>${x.co}</td><td><span class="tag">${x.i} ${x.y}</span></td><td>${x.cgpa.toFixed(1)}</td><td>${x.ug}</td><td>${x.ie==null?"—":x.ie.toFixed(1)}</td><td>${x.s==null?"—":x.s?'<span class="yes">Yes</span>':"No"}</td></tr>`).join("")||`<tr><td colspan="13">No leads match these filters. Reset filters to see all leads.</td></tr>`;
+  $("cnt").textContent=total?`Showing ${start+1}–${end} of ${total.toLocaleString("en-IN")}`:"Showing 0 of 0";
+  $("pgInfo").textContent=`Page ${page} of ${totalPages}`;
+  $("pgFirst").disabled=page<=1;
+  $("pgPrev").disabled=page<=1;
+  $("pgNext").disabled=page>=totalPages;
+  $("pgLast").disabled=page>=totalPages;
+}
+
+["fSg","fC","fCi","fCo","fI","fY","fSc","fPk","fCoN","fScN"].forEach(i=>$(i).addEventListener("change",render));
+$("fSt").addEventListener("change",()=>{fillStages();render()});
+$("fS").addEventListener("input",render);
+document.querySelectorAll("th.sortable").forEach(th=>{
+  th.addEventListener("click",()=>{
+    const k=th.dataset.sort;
+    if(sortKey===k)sortDir=sortDir==="asc"?"desc":"asc";
+    else{sortKey=k;sortDir=(k==="ug"||k==="ie"||k==="y")?"desc":"asc";}
+    document.querySelectorAll("th.sortable .sort-ind").forEach(sp=>sp.textContent="");
+    th.querySelector(".sort-ind").textContent=sortDir==="asc"?"▲":"▼";
+    render();
+  });
+});
+$("pgSize").addEventListener("change",e=>{pageSize=+e.target.value;page=1;table()});
+$("pgFirst").onclick=()=>{page=1;table()};
+$("pgPrev").onclick=()=>{if(page>1){page--;table()}};
+$("pgNext").onclick=()=>{const tp=Math.max(1,Math.ceil(rows.length/pageSize));if(page<tp){page++;table()}};
+$("pgLast").onclick=()=>{page=Math.max(1,Math.ceil(rows.length/pageSize));table()};
+$("rst").onclick=()=>{["fSt","fC","fCi","fCo","fI","fY","fSc","fPk","fCoN","fScN","fS"].forEach(i=>$(i).value="");sortKey="";document.querySelectorAll("th.sortable .sort-ind").forEach(sp=>sp.textContent="");fillStages();render()};
+
+$("themeBtn").onclick=()=>{
+  const cur=document.documentElement.getAttribute("data-theme");
+  const next=cur==="dark"?"light":cur==="light"?"dark":(matchMedia("(prefers-color-scheme: dark)").matches?"light":"dark");
+  document.documentElement.setAttribute("data-theme",next);
+  render();
+};
+
+$("expBtn").onclick=()=>{
+  const hdr=["ID","Candidate","Status","Stage","Country","City","University","Course","Intake","Year","CGPA","UG %","IELTS","Scholarship"];
+  const body=rows.map(x=>[x.id,`"${x.n}"`,x.st,`"${x.sg}"`,x.c,`"${x.city}"`,`"${x.u}"`,`"${x.co}"`,x.i,x.y,x.cgpa.toFixed(1),x.ug,x.ie==null?"":x.ie.toFixed(1),x.s==null?"":(x.s?"Yes":"No")].join(","));
+  const blob=new Blob([[hdr.join(","),...body].join("\n")],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url;a.download=`eu-public-university-leads-${rows.length}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+};
+
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",render);
+
+const BY=new Map(D.map(x=>[x.id,x]));
+const NEXT={"Profile evaluation":"Complete the profile call and confirm target countries","University shortlisting":"Finalise 5 to 6 public universities with the student","Test prep in progress":"Book the IELTS slot and track mock scores","Application in progress":"Submit applications and track portal status","Offer received":"Review the offer and collect acceptance documents","Scholarship assistance":"Prepare scholarship and fee waiver applications","Finance assistance":"Arrange blocked account or loan sanction","Visa documentation":"Compile the visa file and book the appointment","Visa interview prep":"Run a mock visa interview","Accommodation support":"Shortlist student housing near campus","Pre-departure":"Share the travel and arrival checklist","Enrolled":"Student enrolled; collect feedback and referrals","Application rejected":"Schedule re-application counselling for next intake or shortlist alternative EU public universities"};
+const DEG={"Computer Science":"B.E. Computer Science","Data Science & AI":"B.Tech Information Technology","Mechanical Engineering":"B.E. Mechanical","Electrical & Electronics":"B.E. Electronics","Business & Management":"BBA / B.Com","Civil & Environmental":"B.E. Civil","Biotechnology":"B.Tech Biotechnology","Renewable Energy":"B.E. Electrical","Architecture":"B.Arch"};
+const DOCS=[["Passport",1],["Academic transcripts",1],["CV",2],["IELTS scorecard",3],["SOP and LORs",4],["Offer letter",4],["Financial documents",7],["Visa application",8],["Visa stamped",9]];
+const fmt=d=>d.toLocaleString("en-IN",{month:"short",year:"numeric"});
+function sec(t,a){return `<section><h3>${t}</h3><dl>${a.map(v=>`<div><dt>${v[0]}</dt><dd>${v[1]}</dd></div>`).join("")}</dl></section>`}
+let lastBtn=null;
+
+function openP(id){
+  const x=BY.get(id);if(!x)return;
+  const ed=leadEdits[x.id]||{};
+  const docOverrides=ed.docs||{};
+  const savedNote=ed.note||"";
+  const r=rng(+id.slice(3)*7919),pk=a=>a[Math.floor(r()*a.length)],dg=n=>Math.floor(r()*Math.pow(10,n)).toString().padStart(n,"0");
+  const ix=STAGES.indexOf(x.sg),open=x.st==="Open",rej=x.st==="Rejected",im=x.i==="Winter"?9:3;
+  const enq=open?new Date(2026,Math.floor(r()*10),12):x.y===2027?new Date(2026,Math.floor(r()*9),12):new Date(x.y,im-8-Math.floor(r()*6),12);
+  const visa=ix<7?"Not started":ix===7?"Documents in progress":ix===8?"Interview preparation":"Granted";
+  const fund=pk(["Self funded","Education loan","Loan and family funds","Scholarship and loan"]);
+  const offer=ix>=4?new Date(x.y,im-4-Math.floor(r()*2),10):null;
+  const bud={Germany:"8 to 12",Sweden:"12 to 16",Italy:"7 to 11",France:"8 to 12",Netherlands:"12 to 18",Poland:"6 to 9",Austria:"8 to 12",Finland:"10 to 15"}[x.c];
+  const stp=STAGES.map((g,j)=>`<li class="${j<ix?"done":j===ix?"cur":""}">${g}${j===ix?" (current)":""}</li>`).join("");
+  const docs=DOCS.map(d=>{const ok=docOverrides[d[0]]!==undefined?docOverrides[d[0]]:ix>=d[1];return `<div><dt>${d[0]}</dt><dd><button type="button" class="doc-btn ${ok?"ok":""}" data-doc="${d[0]}" data-id="${x.id}">${ok?"Done":"Pending"}</button></dd></div>`}).join("");
+  const fullEmail=x.n.toLowerCase().replace(" ",".")+(10+Math.floor(r()*89))+"@gmail.com";
+  const [eUser,eDom]=fullEmail.split("@");
+  const maskEmail=eUser.slice(0,3)+"******"+eUser.slice(-2)+"@"+eDom;
+  const rawPhone=pk(["98","97","99","90","88","63"])+dg(8);
+  const fullPhone="+91 "+rawPhone;
+  const maskPhone="+91 "+rawPhone.slice(0,2)+"******"+rawPhone.slice(-2);
+  const pii=(mask,full)=>`<span class="reveal-wrap"><span class="masked-val">${mask}</span><button type="button" class="reveal-btn" data-mask="${mask}" data-full="${full}" data-open="0">Show</button><button type="button" class="copy-btn" data-copy="${full}" hidden>Copy</button></span>`;
+  const stageOpts=STAGES.map(g=>`<option value="${g}" ${g===x.sg?"selected":""}>${g}</option>`).join("");
+  const rejHtml=rej?`<p class="rj-box"><b>Rejection reason:</b> ${x.rr||REJ_REASONS[0]}</p>`:"";
+  $("pb").innerHTML=`<h2 id="pt">${x.n}</h2><p class="sub">${x.id} &nbsp; <span class="tag ${open?"op":rej?"rj":"ad"}">${x.st}</span> <select id="modalStageSel" class="stage-sel" data-id="${x.id}" aria-label="Change stage">${stageOpts}</select></p>
+  ${rejHtml}<p class="nx"><b>Next action:</b> ${NEXT[x.sg]}</p><div class="pg">
+  ${sec("Contact",[["Email",pii(maskEmail,fullEmail)],["Phone",pii(maskPhone,fullPhone)],["City",x.city],["Lead source",pk(["Instagram","Webinar","Referral","Website","Education fair","YouTube"])],["Counsellor",x.cn],["Service Counsellor",x.scn||SERVICE_COUNSELLORS[0]],["Enquiry date",fmt(enq)]])}
+  ${sec("Academic profile",[["Undergraduate degree",DEG[x.co]],["CGPA",x.cgpa.toFixed(1)+" / 10"],["UG score",x.ug+"%"],["Backlogs",r()<.82?"None":pk(["1","2"])],["Work experience",pk(["Fresher","1 year","2 years","3 years"])],["IELTS",x.ie==null?"Not taken yet":x.ie.toFixed(1)],["German level",x.c==="Germany"?pk(["None","A1","A2","B1"]):"Not required"]])}
+  ${sec("Study plan",[["Level","Master's"],["Course",x.co],[open?"Target country":"Country",x.c],[open?"Target university":"University",x.u],["Intake",x.i+" "+x.y],["Yearly budget",bud+" lakh INR"],["Funding plan",fund]])}
+  ${sec("Admission and visa",[["Application ID",ix>=3?"APP-"+x.y+"-"+dg(5):"Not created"],["Admission",rej?"Rejected":open?"Awaiting decision":ix===11?"Enrolled":"Admitted"],["Offer date",offer?fmt(offer):"Not applicable"],["Scholarship",(open||rej)?"Not applicable":x.s?"Awarded":"Not awarded"],["Visa status",visa]])}
+  <section><h3>Pipeline</h3><ol class="st">${stp}</ol></section>
+  <section><h3>Documents <span style="font-weight:400;color:var(--muted)">(click to toggle)</span></h3><dl>${docs}</dl></section></div>
+  <div class="notes-box">
+    <h3 style="margin:0 0 6px;font-size:13px">Counsellor Notes</h3>
+    <textarea id="leadNoteInp" placeholder="Add call summary, follow-up date, or university feedback...">${savedNote}</textarea>
+    <div style="display:flex;justify-content:flex-end;margin-top:8px">
+      <button type="button" id="saveNoteBtn" data-id="${x.id}">Save Note</button>
+    </div>
+  </div>`;
+  lastBtn=document.activeElement;$("pm").hidden=false;$("px").focus();
+}
+function closeP(){$("pm").hidden=true;lastBtn&&lastBtn.focus&&lastBtn.focus()}
+$("tb").addEventListener("click",e=>{const b=e.target.closest(".idb");if(b)openP(b.dataset.id)});
+function showToast(msg){
+  const t=$("toast");t.textContent=msg;t.hidden=false;
+  clearTimeout(window._tt);window._tt=setTimeout(()=>{t.hidden=true},2600);
+}
+
+$("pb").addEventListener("click",e=>{
+  const b=e.target.closest(".reveal-btn");
+  if(b){
+    const show=b.dataset.open!=="1";
+    b.dataset.open=show?"1":"0";
+    b.previousElementSibling.textContent=show?b.dataset.full:b.dataset.mask;
+    b.textContent=show?"Hide":"Show";
+    if(b.nextElementSibling&&b.nextElementSibling.classList.contains("copy-btn"))b.nextElementSibling.hidden=!show;
+    return;
+  }
+  const cp=e.target.closest(".copy-btn");
+  if(cp){
+    const val=cp.dataset.copy;
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(val).catch(()=>{});
+    }else{
+      const ta=document.createElement("textarea");ta.value=val;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+    }
+    showToast("Copied to clipboard");
+    return;
+  }
+  const db=e.target.closest(".doc-btn");
+  if(db){
+    const id=db.dataset.id,doc=db.dataset.doc;
+    if(!leadEdits[id])leadEdits[id]={};
+    if(!leadEdits[id].docs)leadEdits[id].docs={};
+    const nextOk=!db.classList.contains("ok");
+    leadEdits[id].docs[doc]=nextOk;
+    saveJson(STORAGE_EDITS_KEY,leadEdits);
+    db.classList.toggle("ok",nextOk);
+    db.textContent=nextOk?"Done":"Pending";
+    showToast(`${doc}: ${nextOk?"Done":"Pending"}`);
+    return;
+  }
+  const sn=e.target.closest("#saveNoteBtn");
+  if(sn){
+    const id=sn.dataset.id;
+    if(!leadEdits[id])leadEdits[id]={};
+    leadEdits[id].note=$("leadNoteInp").value;
+    saveJson(STORAGE_EDITS_KEY,leadEdits);
+    showToast("Counsellor note saved");
+  }
+});
+
+$("pb").addEventListener("change",e=>{
+  if(e.target.id==="modalStageSel"){
+    const id=e.target.dataset.id,sg=e.target.value;
+    const x=BY.get(id);
+    if(x){
+      x.sg=sg;
+      x.st=sg===REJ_STAGE?"Rejected":OPEN.includes(sg)?"Open":"Admitted";if(x.st==="Rejected"&&!x.rr)x.rr=REJ_REASONS[0];
+      if(!leadEdits[id])leadEdits[id]={};
+      leadEdits[id].sg=sg;
+      saveJson(STORAGE_EDITS_KEY,leadEdits);
+      render();
+      openP(id);
+      showToast(`Stage updated to ${sg}`);
+    }
+  }
+});
+
+// Add Lead Modal
+$("addLeadBtn").onclick=()=>{$("alErr").textContent="";$("alm").hidden=false};
+$("almx").onclick=()=>{$("alm").hidden=true};
+$("alCancel").onclick=()=>{$("alm").hidden=true};
+$("alm").addEventListener("click",e=>{if(e.target===$("alm"))$("alm").hidden=true});
+$("alSave").onclick=()=>{
+  const n=$("alName").value.trim(),u=$("alUniv").value.trim();
+  if(!n||!u){$("alErr").textContent="Please enter both Full Name and University.";return;}
+  const sg=$("alStage").value,open=OPEN.includes(sg),rej=sg===REJ_STAGE,c=$("alCountry").value;
+  const newLead={
+    id:"LS-"+(900000+customLeads.length*13+7),
+    n,c,city:$("alCity").value,u,co:$("alCourse").value,
+    i:$("alIntake").value,y:+$("alYear").value,
+    cgpa:parseFloat($("alCgpa").value)||8.0,
+    ug:parseFloat($("alUg").value)||75,
+    ie:parseFloat($("alIelts").value)||7.0,apps:open&&$("alStage").value!=="Application in progress"?0:4,
+    st:rej?"Rejected":open?"Open":"Admitted",sg,
+    s:(open||rej)?null:($("alSchol").value==="yes"),
+    cn:(activeCounsellorScope&&activeCounsellorScope.type==="cn"?activeCounsellorScope.val:COUNSELLORS[0]),scn:SERVICE_COUNSELLORS[0],pkg:"Premium",
+    rr:rej?REJ_REASONS[0]:null
+  };
+  customLeads.unshift(newLead);
+  saveJson(STORAGE_CUSTOM_KEY,customLeads);
+  D.unshift(newLead);
+  BY.set(newLead.id,newLead);
+  $("alName").value="";$("alUniv").value="";$("alm").hidden=true;
+  render();
+  showToast(`Added ${newLead.n} (${newLead.id})`);
+};
+
+// Import CSV
+$("impBtn").onclick=()=>$("impFile").click();
+$("impFile").addEventListener("change",e=>{
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    const lines=String(ev.target.result).split(/\r?\n/).filter(Boolean);
+    if(lines.length<2){showToast("CSV file is empty");return;}
+    let added=0;
+    for(let i=1;i<lines.length;i++){
+      const cols=lines[i].split(",").map(v=>v.replace(/^"|"$/g,"").trim());
+      if(cols.length<6)continue;
+      const sg=STAGES.includes(cols[3])?cols[3]:"Enrolled";
+      const open=OPEN.includes(sg),rej=sg===REJ_STAGE;
+      const ugv=parseFloat(cols[11])||parseFloat(cols[10])||75;
+      const nl={
+        id:cols[0]||("LS-CSV-"+(1000+i)),
+        n:cols[1]||"Candidate "+i,
+        st:rej?"Rejected":open?"Open":"Admitted",sg,
+        c:CT[cols[4]]?cols[4]:"Germany",
+        city:cols[5]||"Bengaluru",
+        u:cols[6]||"TU Munich",
+        co:cols[7]||"Computer Science",
+        i:cols[8]==="Summer"?"Summer":"Winter",
+        y:parseInt(cols[9],10)||2026,
+        cgpa:parseFloat(cols[10])<=10?parseFloat(cols[10]):Math.round((ugv/9.5)*10)/10,
+        ug:ugv,
+        ie:cols[12]?parseFloat(cols[12]):null,
+        s:(open||rej)?null:(cols[13]==="Yes"),
+        cn:COUNSELLORS[i%COUNSELLORS.length],scn:SERVICE_COUNSELLORS[i%SERVICE_COUNSELLORS.length],pkg:"Premium",
+        rr:rej?REJ_REASONS[0]:null
+      };
+      D.unshift(nl);BY.set(nl.id,nl);customLeads.unshift(nl);added++;
+    }
+    saveJson(STORAGE_CUSTOM_KEY,customLeads);
+    render();
+    showToast(`Imported ${added} leads from CSV`);
+    e.target.value="";
+  };
+  reader.readAsText(file);
+});
+$("px").onclick=closeP;$("pm").addEventListener("click",e=>{if(e.target===$("pm"))closeP()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("pm").hidden)closeP()});
+
+// =========================================================================
+// AUTHENTICATION & ADMIN USER MANAGEMENT (@leapfinance.com)
+// =========================================================================
+const ADMIN_EMAIL = "admin@leapfinance.com";
+const ADMIN_PASS = "Leap@123";
+const DEFAULT_TEAM_PASS = "Leap@123";
+const STORAGE_USERS_KEY = "lf_eu_users_v1";
+const STORAGE_SESSION_KEY = "lf_eu_session_v1";
+
+const BUILTIN_MANAGERS = ["mithlesh@leapfinance.com", "rahul@leapfinance.com"];
+const BUILTIN_COUNSELLORS = COUNSELLORS.map(c => c.toLowerCase().replace(/\s+/g, "") + "@leapfinance.com");
+
+function loadUsers(){
+  try{
+    const raw=localStorage.getItem(STORAGE_USERS_KEY);
+    if(raw){
+      const parsed=JSON.parse(raw);
+      if(Array.isArray(parsed))return parsed;
+    }
+  }catch(e){}
+  return [];
+}
+function saveUsers(list){
+  try{localStorage.setItem(STORAGE_USERS_KEY,JSON.stringify(list))}catch(e){}
+}
+let usersList = loadUsers();
+
+$("lg").src = document.querySelector("header .logo").src;
+
+function emailBucket(str){
+  let h=0;for(let i=0;i<str.length;i++){h=(h*31+str.charCodeAt(i))>>>0;}
+  return h%10;
+}
+
+function enterSession(email, role){
+  $("login").hidden = true;
+  $("app").hidden = false;
+  const prefix = email.split("@")[0].replace(/[^a-z]/g, "");
+  const isManager = role === "Manager" || BUILTIN_MANAGERS.includes(email);
+  const isSuperViewer = role === "Admin" || isManager;
+  const matchedCounsellor = COUNSELLORS.find(c => prefix.startsWith(c.toLowerCase().replace(/\s+/g, "")));
+  if(isSuperViewer){
+    activeCounsellorScope = null;
+    $("fCoNWrap").style.display = "";
+    $("fScNWrap").style.display = "";
+  } else {
+    activeCounsellorScope = matchedCounsellor
+      ? {type:"cn", val:matchedCounsellor}
+      : {type:"bucket", bucket:emailBucket(email)};
+    $("fCoNWrap").style.display = "none";
+    $("fScNWrap").style.display = "none";
+    $("fCoN").value = "";
+    $("fScN").value = "";
+  }
+  const badgeCls = isSuperViewer ? "role-badge" : "role-badge team";
+  const scopeLabel = role === "Admin" ? "Admin" : isManager ? "Manager" : "Team Member";
+  $("userPill").innerHTML = `<span>${email}</span><span class="${badgeCls}">${scopeLabel}</span>`;
+  $("adminBtn").hidden = role !== "Admin";
+  render();
+}
+
+function tryLogin(){
+  const email = $("le").value.trim().toLowerCase();
+  const pass = $("lp").value;
+  if(!email.endsWith("@leapfinance.com") || email.indexOf("@") < 1){
+    $("lerr").textContent = "Please use a valid @leapfinance.com email ID.";
+    return;
+  }
+  let role = null;
+  if(email === ADMIN_EMAIL && pass === ADMIN_PASS){
+    role = "Admin";
+  } else if(BUILTIN_MANAGERS.includes(email) && pass === DEFAULT_TEAM_PASS){
+    role = "Manager";
+  } else {
+    const found = usersList.find(u => u.email === email);
+    if(found && pass === found.pass){
+      role = found.role || "Team";
+    } else if(!found && pass === DEFAULT_TEAM_PASS){
+      role = "Team";
+    }
+  }
+  if(!role){
+    $("lerr").textContent = "Invalid email or password. Check credentials and try again.";
+    return;
+  }
+  $("lerr").textContent = "";
+  $("lp").value = "";
+  try{sessionStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify({email, role}))}catch(e){}
+  enterSession(email, role);
+}
+
+$("lb").onclick = tryLogin;
+[$("le"), $("lp")].forEach(el => el.addEventListener("keydown", e => { if(e.key === "Enter") tryLogin(); }));
+
+$("outBtn").onclick = () => {
+  try{sessionStorage.removeItem(STORAGE_SESSION_KEY)}catch(e){}
+  $("app").hidden = true;
+  $("login").hidden = false;
+  $("pm").hidden = true;
+  $("um").hidden = true;
+};
+
+function renderUserList(){
+  $("umList").innerHTML = usersList.map((u, idx) => `
+    <li>
+      <div><b>${u.email}</b> <span class="tag">${u.role}</span></div>
+      <button type="button" class="ghost rm-user" data-idx="${idx}" style="padding:3px 8px;font-size:11px;color:var(--d);border-color:var(--d)">Remove</button>
+    </li>
+  `).join("") || `<li style="color:var(--muted)">No custom team users added yet. Any @leapfinance.com email can still sign in with the team password.</li>`;
+}
+
+$("adminBtn").onclick = () => {
+  $("umErr").textContent = "";
+  renderUserList();
+  $("um").hidden = false;
+};
+$("umx").onclick = () => { $("um").hidden = true; };
+$("um").addEventListener("click", e => { if(e.target === $("um")) $("um").hidden = true; });
+
+$("addUserBtn").onclick = () => {
+  const email = $("newUserEmail").value.trim().toLowerCase();
+  const pass = $("newUserPass").value.trim() || DEFAULT_TEAM_PASS;
+  if(!email.endsWith("@leapfinance.com") || email.indexOf("@") < 1){
+    $("umErr").textContent = "Email must end with @leapfinance.com.";
+    return;
+  }
+  if(email === ADMIN_EMAIL){
+    $("umErr").textContent = "Admin account is built-in.";
+    return;
+  }
+  if(usersList.some(u => u.email === email)){
+    $("umErr").textContent = "This user is already in the list.";
+    return;
+  }
+  $("umErr").textContent = "";
+  usersList.push({email, pass, role:"Team"});
+  saveUsers(usersList);
+  $("newUserEmail").value = "";
+  renderUserList();
+};
+
+$("umList").addEventListener("click", e => {
+  const btn = e.target.closest(".rm-user");
+  if(!btn) return;
+  const idx = +btn.dataset.idx;
+  usersList.splice(idx, 1);
+  saveUsers(usersList);
+  renderUserList();
+});
+
+try{
+  const saved = sessionStorage.getItem(STORAGE_SESSION_KEY);
+  if(saved){
+    const sess = JSON.parse(saved);
+    if(sess && sess.email && sess.role) enterSession(sess.email, sess.role);
+  }
+}catch(e){}
+</script>
+</body>
+</html>
